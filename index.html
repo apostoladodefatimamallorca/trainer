@@ -1,0 +1,457 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="Kegel">
+<meta name="theme-color" content="#c9a84c">
+<link rel="manifest" href="./manifest.json">
+<link rel="apple-touch-icon" href="./icon-192.png">
+<title>Suelo Pélvico</title>
+<link href="https://fonts.googleapis.com/css2?family=DM+Serif+Display:ital@0;1&family=DM+Sans:wght@300;400;500;600&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg: #0f0e0c;
+    --surface: #1a1815;
+    --surface2: #222018;
+    --gold: #c9a84c;
+    --gold-light: #e8c96a;
+    --gold-dim: #6b5a2a;
+    --cream: #f0e8d8;
+    --cream-dim: #8a7e6a;
+    --red: #c44a3a;
+    --green: #4a9068;
+    --text: #e8e0d0;
+    --text-dim: #7a7060;
+    --border: #2a2820;
+  }
+  * { margin: 0; padding: 0; box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+  body {
+    background: var(--bg);
+    color: var(--text);
+    font-family: 'DM Sans', sans-serif;
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    overflow-x: hidden;
+    padding-bottom: env(safe-area-inset-bottom);
+  }
+  body::before {
+    content: '';
+    position: fixed;
+    inset: 0;
+    background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noise)' opacity='0.04'/%3E%3C/svg%3E");
+    pointer-events: none;
+    z-index: 100;
+    opacity: 0.4;
+  }
+  header {
+    width: 100%;
+    max-width: 480px;
+    padding: 52px 24px 16px;
+    text-align: center;
+  }
+  .header-tag { font-size: 10px; letter-spacing: 3px; text-transform: uppercase; color: var(--gold); margin-bottom: 10px; }
+  h1 { font-family: 'DM Serif Display', serif; font-size: 26px; color: var(--cream); line-height: 1.2; margin-bottom: 4px; }
+  h1 em { font-style: italic; color: var(--gold-light); }
+  .subtitle { font-size: 12px; color: var(--text-dim); font-weight: 300; }
+
+  .week-nav { width: 100%; max-width: 480px; padding: 14px 24px; }
+  .week-label { font-size: 10px; letter-spacing: 2px; text-transform: uppercase; color: var(--text-dim); margin-bottom: 8px; }
+  .weeks-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 5px; }
+  .week-btn {
+    background: var(--surface); border: 1px solid var(--border); color: var(--text-dim);
+    border-radius: 8px; padding: 8px 4px; font-family: 'DM Sans', sans-serif;
+    font-size: 10px; cursor: pointer; transition: all 0.2s; text-align: center;
+  }
+  .week-btn .wnum { display: block; font-size: 15px; font-weight: 600; color: var(--text-dim); margin-bottom: 1px; }
+  .week-btn.active { background: var(--surface2); border-color: var(--gold); color: var(--cream); }
+  .week-btn.active .wnum { color: var(--gold-light); }
+
+  .protocol-card {
+    width: calc(100% - 48px); max-width: 480px;
+    background: var(--surface); border: 1px solid var(--border);
+    border-radius: 14px; padding: 16px; margin-bottom: 12px;
+  }
+  .protocol-title { font-family: 'DM Serif Display', serif; font-size: 17px; color: var(--cream); margin-bottom: 3px; }
+  .protocol-desc { font-size: 11px; color: var(--text-dim); margin-bottom: 12px; line-height: 1.5; }
+  .params-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 6px; }
+  .param { background: var(--bg); border-radius: 8px; padding: 8px 10px; }
+  .param-label { font-size: 9px; letter-spacing: 1.5px; text-transform: uppercase; color: var(--text-dim); margin-bottom: 2px; }
+  .param-value { font-size: 18px; font-weight: 600; color: var(--gold-light); }
+  .param-unit { font-size: 10px; color: var(--text-dim); margin-left: 2px; }
+
+  .exercise-tabs { width: 100%; max-width: 480px; padding: 0 24px; margin-bottom: 12px; }
+  .tabs-label { font-size: 10px; letter-spacing: 2px; text-transform: uppercase; color: var(--text-dim); margin-bottom: 6px; }
+  .tabs-row { display: flex; gap: 6px; }
+  .tab-btn {
+    flex: 1; background: var(--surface); border: 1px solid var(--border);
+    border-radius: 10px; padding: 8px; font-family: 'DM Sans', sans-serif;
+    font-size: 11px; color: var(--text-dim); cursor: pointer; transition: all 0.2s; text-align: center;
+  }
+  .tab-btn .tab-icon { font-size: 16px; display: block; margin-bottom: 2px; }
+  .tab-btn.active { background: var(--surface2); border-color: var(--gold); color: var(--cream); }
+
+  .trainer { width: 100%; max-width: 480px; padding: 0 24px; margin-bottom: 12px; }
+  .trainer-inner {
+    background: var(--surface); border: 1px solid var(--border);
+    border-radius: 18px; padding: 22px 20px; text-align: center;
+  }
+  .ring-wrap { position: relative; width: 180px; height: 180px; margin: 0 auto 18px; }
+  .ring-wrap svg { transform: rotate(-90deg); width: 180px; height: 180px; }
+  .ring-bg { fill: none; stroke: var(--border); stroke-width: 8; }
+  .ring-progress { fill: none; stroke: var(--gold); stroke-width: 8; stroke-linecap: round; transition: stroke-dashoffset 0.3s ease, stroke 0.3s; }
+  .ring-center { position: absolute; inset: 0; display: flex; flex-direction: column; align-items: center; justify-content: center; }
+  .timer-display { font-family: 'DM Serif Display', serif; font-size: 52px; color: var(--cream); line-height: 1; }
+  .phase-label { font-size: 10px; letter-spacing: 2px; text-transform: uppercase; margin-top: 3px; transition: color 0.3s; }
+  .phase-label.contract { color: var(--gold); }
+  .phase-label.relax { color: var(--green); }
+  .phase-label.ready { color: var(--text-dim); }
+  .phase-label.done { color: var(--green); }
+
+  .counters { display: flex; justify-content: center; gap: 28px; margin-bottom: 16px; }
+  .counter-item { text-align: center; }
+  .counter-num { font-family: 'DM Serif Display', serif; font-size: 28px; color: var(--cream); line-height: 1; }
+  .counter-label { font-size: 9px; letter-spacing: 1.5px; text-transform: uppercase; color: var(--text-dim); margin-top: 1px; }
+  .counter-total { font-size: 12px; color: var(--text-dim); }
+
+  .instruction { font-size: 12px; color: var(--text-dim); margin-bottom: 16px; min-height: 32px; line-height: 1.5; font-style: italic; }
+
+  .btn-row { display: flex; gap: 8px; justify-content: center; }
+  .btn-main {
+    background: var(--gold); color: #0f0e0c; border: none;
+    border-radius: 50px; padding: 13px 36px; font-family: 'DM Sans', sans-serif;
+    font-size: 14px; font-weight: 600; cursor: pointer; transition: all 0.2s;
+  }
+  .btn-main:active { opacity: 0.8; transform: scale(0.97); }
+  .btn-secondary {
+    background: transparent; color: var(--text-dim); border: 1px solid var(--border);
+    border-radius: 50px; padding: 13px 22px; font-family: 'DM Sans', sans-serif;
+    font-size: 14px; cursor: pointer; transition: all 0.2s;
+  }
+  .btn-secondary:active { opacity: 0.7; }
+
+  .session-progress { width: 100%; max-width: 480px; padding: 0 24px 16px; }
+  .sp-label { display: flex; justify-content: space-between; font-size: 11px; color: var(--text-dim); margin-bottom: 5px; }
+  .sp-bar { height: 3px; background: var(--border); border-radius: 2px; overflow: hidden; }
+  .sp-fill { height: 100%; background: linear-gradient(90deg, var(--gold-dim), var(--gold)); border-radius: 2px; transition: width 0.5s ease; }
+
+  .clinical-note { width: 100%; max-width: 480px; padding: 0 24px 40px; }
+  .note-box { background: #1a1510; border: 1px solid #2a2010; border-left: 3px solid var(--gold-dim); border-radius: 10px; padding: 12px 14px; }
+  .note-box p { font-size: 11px; color: var(--text-dim); line-height: 1.6; }
+  .note-box strong { color: var(--gold); font-weight: 500; }
+
+  @keyframes pulse-ring {
+    0%, 100% { filter: drop-shadow(0 0 0px var(--gold)); }
+    50% { filter: drop-shadow(0 0 10px var(--gold)); }
+  }
+  .ring-wrap.contracting svg { animation: pulse-ring 1s ease-in-out infinite; }
+</style>
+</head>
+<body>
+
+<header>
+  <p class="header-tag">Protocolo Clínico</p>
+  <h1>Suelo Pélvico<br><em>Masculino</em></h1>
+  <p class="subtitle">Entrenamiento progresivo basado en evidencia</p>
+</header>
+
+<div class="week-nav">
+  <p class="week-label">Semana de entrenamiento</p>
+  <div class="weeks-grid" id="weeksGrid"></div>
+</div>
+
+<div class="protocol-card" id="protocolCard">
+  <p class="protocol-title" id="protocolTitle">—</p>
+  <p class="protocol-desc" id="protocolDesc">—</p>
+  <div class="params-grid" id="paramsGrid"></div>
+</div>
+
+<div class="exercise-tabs">
+  <p class="tabs-label">Tipo de contracción</p>
+  <div class="tabs-row" id="tabsRow"></div>
+</div>
+
+<div class="trainer">
+  <div class="trainer-inner">
+    <div class="ring-wrap" id="ringWrap">
+      <svg viewBox="0 0 180 180">
+        <circle class="ring-bg" cx="90" cy="90" r="78"/>
+        <circle class="ring-progress" id="ringProgress" cx="90" cy="90" r="78"
+          stroke-dasharray="490" stroke-dashoffset="0"/>
+      </svg>
+      <div class="ring-center">
+        <div class="timer-display" id="timerDisplay">—</div>
+        <div class="phase-label ready" id="phaseLabel">LISTO</div>
+      </div>
+    </div>
+    <div class="counters">
+      <div class="counter-item">
+        <div class="counter-num" id="repNum">0</div>
+        <div class="counter-label">Rep</div>
+        <div class="counter-total" id="repTotal">/ 0</div>
+      </div>
+      <div class="counter-item">
+        <div class="counter-num" id="serieNum">1</div>
+        <div class="counter-label">Serie</div>
+        <div class="counter-total" id="serieTotal">/ 0</div>
+      </div>
+    </div>
+    <p class="instruction" id="instruction">Selecciona semana y tipo de ejercicio, luego pulsa Iniciar.</p>
+    <div class="btn-row">
+      <button class="btn-secondary" onclick="resetTrainer()">Reiniciar</button>
+      <button class="btn-main" id="btnStart" onclick="toggleTrainer()">Iniciar</button>
+    </div>
+  </div>
+</div>
+
+<div class="session-progress">
+  <div class="sp-label"><span>Progreso de sesión</span><span id="spPct">0%</span></div>
+  <div class="sp-bar"><div class="sp-fill" id="spFill" style="width:0%"></div></div>
+</div>
+
+<div class="clinical-note">
+  <div class="note-box" id="clinicalNote">
+    <p><strong>Nota clínica:</strong> Selecciona una semana para ver las indicaciones del protocolo.</p>
+  </div>
+</div>
+
+<script>
+const PROTOCOLS = {
+  1: {
+    title: "Fase Inicial",
+    desc: "Activación propioceptiva y establecimiento del patrón motor básico.",
+    contractSec: 3, relaxSec: 3, reps: 10, series: 3, types: ["slow"],
+    note: "Posición recomendada: decúbito supino, rodillas flexionadas. Identificar correctamente el músculo pubococcígeo. Evitar contracción de glúteos, abdomen y muslos.",
+  },
+  5: {
+    title: "Fase Progresiva",
+    desc: "Aumento de carga y coordinación neuro-muscular con contracciones sostenidas y rápidas.",
+    contractSec: 6, relaxSec: 6, reps: 12, series: 4, types: ["slow","fast"],
+    note: "Incorporar contracciones rápidas (flicks). Realizar en posición sentado o de pie. Las fibras tipo II son clave para el control eyaculatorio.",
+  },
+  9: {
+    title: "Fase de Mantenimiento",
+    desc: "Consolidación funcional e integración en actividades cotidianas.",
+    contractSec: 9, relaxSec: 9, reps: 15, series: 3, types: ["slow","fast"],
+    note: "Resultados consolidados esperables a las 12–16 semanas. Sin mejora tras 8 semanas: valorar derivación a fisioterapeuta especializado.",
+  },
+};
+const EXERCISE_TYPES = {
+  slow: { label: "Lenta sostenida", icon: "🔵", desc: "Fibras tipo I", instruction: "Contrae lentamente y mantén. Relájate completamente entre contracciones." },
+  fast: { label: "Rápida (flick)", icon: "⚡", desc: "Fibras tipo II", instruction: "Contracción y relajación máxima rápida. Sin pausa.", contractSec: 1, relaxSec: 1 },
+};
+
+let state = {
+  week: null, protocol: null, exType: null, running: false,
+  phase: "ready", timer: null, secondsLeft: 0,
+  currentRep: 0, currentSerie: 1, totalReps: 0, completedReps: 0,
+};
+
+function buildWeeks() {
+  const grid = document.getElementById('weeksGrid');
+  for (let w = 1; w <= 16; w++) {
+    const btn = document.createElement('button');
+    btn.className = 'week-btn';
+    btn.id = `week-${w}`;
+    btn.innerHTML = `<span class="wnum">${w}</span>Sem.`;
+    btn.onclick = () => selectWeek(w);
+    grid.appendChild(btn);
+  }
+}
+
+function getProtocolForWeek(w) {
+  if (w <= 4) return PROTOCOLS[1];
+  if (w <= 8) return PROTOCOLS[5];
+  return PROTOCOLS[9];
+}
+
+function selectWeek(w) {
+  resetTrainer();
+  state.week = w;
+  state.protocol = getProtocolForWeek(w);
+  document.querySelectorAll('.week-btn').forEach(b => b.classList.remove('active'));
+  document.getElementById(`week-${w}`).classList.add('active');
+  renderProtocol(); renderTabs(); updateNote();
+}
+
+function renderProtocol() {
+  const p = state.protocol;
+  document.getElementById('protocolTitle').textContent = p.title;
+  document.getElementById('protocolDesc').textContent = p.desc;
+  document.getElementById('paramsGrid').innerHTML = `
+    <div class="param"><div class="param-label">Contracción</div><div class="param-value">${p.contractSec}<span class="param-unit">seg</span></div></div>
+    <div class="param"><div class="param-label">Relajación</div><div class="param-value">${p.relaxSec}<span class="param-unit">seg</span></div></div>
+    <div class="param"><div class="param-label">Repeticiones</div><div class="param-value">${p.reps}<span class="param-unit">/ serie</span></div></div>
+    <div class="param"><div class="param-label">Series</div><div class="param-value">${p.series}</div></div>
+  `;
+}
+
+function renderTabs() {
+  const row = document.getElementById('tabsRow');
+  row.innerHTML = '';
+  state.protocol.types.forEach(t => {
+    const ex = EXERCISE_TYPES[t];
+    const btn = document.createElement('button');
+    btn.className = 'tab-btn' + (state.exType === t ? ' active' : '');
+    btn.innerHTML = `<span class="tab-icon">${ex.icon}</span>${ex.label}<br><span style="font-size:9px;color:var(--text-dim)">${ex.desc}</span>`;
+    btn.onclick = () => selectType(t);
+    row.appendChild(btn);
+  });
+}
+
+function selectType(t) {
+  resetTrainer();
+  state.exType = t;
+  renderTabs();
+  calculateTotals();
+  document.getElementById('instruction').textContent = EXERCISE_TYPES[t].instruction;
+  document.getElementById('timerDisplay').textContent = getContractSec();
+}
+
+function getContractSec() { return (state.exType && EXERCISE_TYPES[state.exType].contractSec) || (state.protocol && state.protocol.contractSec) || 0; }
+function getRelaxSec() { return (state.exType && EXERCISE_TYPES[state.exType].relaxSec) || (state.protocol && state.protocol.relaxSec) || 0; }
+
+function calculateTotals() {
+  const p = state.protocol;
+  state.totalReps = p.reps * p.series;
+  state.completedReps = 0; state.currentRep = 0; state.currentSerie = 1;
+  updateCounters();
+}
+
+function toggleTrainer() {
+  if (!state.week) { alert('Selecciona una semana primero.'); return; }
+  if (!state.exType) { alert('Selecciona el tipo de ejercicio.'); return; }
+  state.running ? pauseTrainer() : startTrainer();
+}
+
+function startTrainer() {
+  state.running = true;
+  document.getElementById('btnStart').textContent = 'Pausar';
+  if (state.phase === 'ready' || state.phase === 'done') {
+    state.phase = 'contract'; state.secondsLeft = getContractSec();
+    state.currentRep = 1; state.completedReps = 0;
+  }
+  tick();
+}
+
+function pauseTrainer() {
+  state.running = false;
+  clearTimeout(state.timer);
+  document.getElementById('btnStart').textContent = 'Continuar';
+}
+
+function resetTrainer() {
+  state.running = false; clearTimeout(state.timer);
+  state.phase = 'ready'; state.currentRep = 0; state.currentSerie = 1; state.completedReps = 0;
+  if (state.protocol) state.totalReps = state.protocol.reps * state.protocol.series;
+  updateRing(0, 'ready'); updatePhaseLabel('ready');
+  document.getElementById('timerDisplay').textContent = state.exType ? getContractSec() : '—';
+  document.getElementById('btnStart').textContent = 'Iniciar';
+  document.getElementById('instruction').textContent = state.exType ? EXERCISE_TYPES[state.exType].instruction : 'Selecciona semana y tipo de ejercicio, luego pulsa Iniciar.';
+  updateCounters(); updateProgress();
+  document.getElementById('ringWrap').classList.remove('contracting');
+  document.getElementById('ringProgress').style.stroke = 'var(--gold)';
+}
+
+function tick() {
+  if (!state.running) return;
+  renderTick();
+  if (state.secondsLeft > 0) { state.secondsLeft--; state.timer = setTimeout(tick, 1000); }
+  else advancePhase();
+}
+
+function renderTick() {
+  const contractSec = getContractSec(), relaxSec = getRelaxSec();
+  const totalSec = state.phase === 'contract' ? contractSec : relaxSec;
+  const elapsed = totalSec - state.secondsLeft;
+  const pct = totalSec > 0 ? elapsed / totalSec : 0;
+  document.getElementById('timerDisplay').textContent = state.secondsLeft;
+  updateRing(pct, state.phase); updatePhaseLabel(state.phase);
+  updateCounters(); updateProgress();
+  if (state.phase === 'contract') {
+    document.getElementById('ringWrap').classList.add('contracting');
+    document.getElementById('instruction').textContent = '💪 ¡Contrae! Mantén la contracción.';
+  } else {
+    document.getElementById('ringWrap').classList.remove('contracting');
+    document.getElementById('instruction').textContent = '😮‍💨 Relájate completamente.';
+  }
+}
+
+function advancePhase() {
+  const p = state.protocol;
+  if (state.phase === 'contract') {
+    state.phase = 'relax'; state.secondsLeft = getRelaxSec(); tick();
+  } else {
+    state.completedReps++;
+    if (state.currentRep < p.reps) {
+      state.currentRep++; state.phase = 'contract'; state.secondsLeft = getContractSec(); tick();
+    } else if (state.currentSerie < p.series) {
+      state.currentSerie++; state.currentRep = 1; state.phase = 'contract'; state.secondsLeft = getContractSec();
+      document.getElementById('instruction').textContent = `✅ Serie ${state.currentSerie - 1} completada. Iniciando serie ${state.currentSerie}…`;
+      document.getElementById('ringWrap').classList.remove('contracting');
+      setTimeout(() => { if (state.running) tick(); }, 2000);
+    } else { finishSession(); }
+  }
+}
+
+function finishSession() {
+  state.running = false; state.phase = 'done'; clearTimeout(state.timer);
+  document.getElementById('ringWrap').classList.remove('contracting');
+  document.getElementById('timerDisplay').textContent = '✓';
+  updatePhaseLabel('done');
+  document.getElementById('instruction').textContent = '🎉 ¡Sesión completada! Descansa hasta la próxima sesión.';
+  document.getElementById('btnStart').textContent = 'Reiniciar';
+  updateRing(1, 'done');
+  document.getElementById('ringProgress').style.stroke = 'var(--green)';
+  updateProgress(true);
+}
+
+const CIRCUMFERENCE = 2 * Math.PI * 78;
+function updateRing(pct, phase) {
+  const ring = document.getElementById('ringProgress');
+  ring.style.strokeDashoffset = CIRCUMFERENCE * (1 - pct);
+  ring.style.stroke = phase === 'contract' ? 'var(--gold)' : phase === 'relax' ? 'var(--green)' : phase === 'done' ? 'var(--green)' : 'var(--border)';
+}
+
+function updatePhaseLabel(phase) {
+  const el = document.getElementById('phaseLabel');
+  el.className = 'phase-label';
+  el.textContent = { ready: 'LISTO', contract: 'CONTRAE', relax: 'RELAJA', done: 'COMPLETADO' }[phase] || '';
+  el.classList.add(phase === 'ready' ? 'ready' : phase);
+}
+
+function updateCounters() {
+  if (!state.protocol) return;
+  document.getElementById('repNum').textContent = state.currentRep || 0;
+  document.getElementById('repTotal').textContent = `/ ${state.protocol.reps}`;
+  document.getElementById('serieNum').textContent = state.currentSerie;
+  document.getElementById('serieTotal').textContent = `/ ${state.protocol.series}`;
+}
+
+function updateProgress(done = false) {
+  const pct = done ? 100 : Math.round(((state.completedReps || 0) / (state.totalReps || 1)) * 100);
+  document.getElementById('spFill').style.width = pct + '%';
+  document.getElementById('spPct').textContent = pct + '%';
+}
+
+function updateNote() {
+  document.getElementById('clinicalNote').innerHTML = `<p><strong>Nota clínica:</strong> ${state.protocol.note}</p>`;
+}
+
+// Service Worker registration
+if ('serviceWorker' in navigator) {
+  window.addEventListener('load', () => {
+    navigator.serviceWorker.register('./sw.js').then(() => {
+      console.log('SW registrado');
+    }).catch(err => console.log('SW error:', err));
+  });
+}
+
+buildWeeks();
+</script>
+</body>
+</html>
