@@ -1,6 +1,6 @@
-const CACHE_NAME = 'kegel-v3';
+const CACHE_NAME = 'kegel-v4';
 self.addEventListener('install', e => {
-  e.waitUntil(caches.open(CACHE_NAME).then(cache => cache.addAll(['./index.html','./manifest.json'])));
+  e.waitUntil(caches.open(CACHE_NAME).then(c => c.addAll(['./index.html','./manifest.json'])));
   self.skipWaiting();
 });
 self.addEventListener('activate', e => {
@@ -8,8 +8,8 @@ self.addEventListener('activate', e => {
   self.clients.claim();
 });
 self.addEventListener('fetch', e => {
-  e.respondWith(caches.match(e.request).then(cached => cached || fetch(e.request).then(r => {
-    caches.open(CACHE_NAME).then(c => c.put(e.request, r.clone()));
+  e.respondWith(caches.match(e.request).then(c => c || fetch(e.request).then(r => {
+    caches.open(CACHE_NAME).then(cache => cache.put(e.request, r.clone()));
     return r;
-  }).catch(() => cached)));
+  }).catch(() => c)));
 });
